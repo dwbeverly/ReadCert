@@ -5,7 +5,7 @@ from sys import argv
 from pprint import pprint
 from datetime import datetime
 
-
+#TLS handhskae to read cert, returns it in DER formatting
 def get_certificate(host, port=443, timeout=10):
     context = ssl.create_default_context()
     conn = socket.create_connection((host, port))
@@ -17,27 +17,47 @@ def get_certificate(host, port=443, timeout=10):
         sock.close()
     return ssl.DER_cert_to_PEM_cert(der_cert)
 
-#edits
+
+#take filename as interactive input
 if __name__ == "__main__":
     if len(argv) > 1:
-        host = argv[1]
+        filename = argv[1]
     else:
-        print('Error: must provide hostname as input')
+        print('Error: must provide filename as input')
         exit(1)
 
-certificate = get_certificate(host)
-x509 = OpenSSL.crypto.load_certificate(OpenSSL.crypto.FILETYPE_PEM, certificate)
+#validate filename, open new file to dump results into
+newname = 'CertificateResults.txt'
+try:
+    infile = open(filename)
+except EnvironmentError as e:
+    print(e)
+    sys.exit(1)
+print("\nThe file ({}) is valid.".format(filename))
+print("\n")
+o = open(newname, 'w')
 
-result = {
-    'subject': dict(x509.get_subject().get_components()),
-    'issuer': dict(x509.get_issuer().get_components()),
-    'serialNumber': x509.get_serial_number(),
-    'version': x509.get_version(),
-    'notBefore': datetime.strptime(x509.get_notBefore(), '%Y%m%d%H%M%SZ'),
-    'notAfter': datetime.strptime(x509.get_notAfter(), '%Y%m%d%H%M%SZ'),
-}
+#loop through file, read remote cert, load into new text file
+for line in infile:
+    host = line.strip()
+    try:
+        certificate = get_certificate(host)
+        x509 = OpenSSL.crypto.load_certificate(OpenSSL.crypto.FILETYPE_PEM, certificate)
 
-extensions = (x509.get_extension(i) for i in range(x509.get_extension_count()))
-extension_data = {e.get_short_name(): str(e) for e in extensions}
-result.update(extension_data)
-pprint(result)
+        result = {
+        #'subject': dict(x509.get_subject().get_components()),
+        'serialNumber': x509.get_serial_number(),
+        'notBefore': datetime.strptime(x509.get_notBefore(), '%Y%m%d%H%M%SZ'),
+        'notAfter': datetime.strptime(x509.get_notAfter(), '%Y%m%d%H%M%SZ'),
+        }
+
+        extensions = (x509.get_extension(i) for i in range(x509.get_extension_count()))
+        extension_data = {e.get_short_name(): str(e) for e in extensions}
+        result.update(extension_data)
+        o.write("{0}, {1}, \n".format(host,result))
+    except EnvironmentError as e:
+        o.write("{0},Unavailable,\n".format(host))
+        continue
+else:
+    print("The script has finished running. The results have been stored in {0}\n".format(newname))
+o.close()
