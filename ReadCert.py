@@ -2,7 +2,6 @@ import ssl
 import socket
 import OpenSSL
 from sys import argv
-from pprint import pprint
 from datetime import datetime
 
 #TLS handhskae to read cert, returns it in DER formatting
@@ -45,7 +44,6 @@ for line in infile:
         x509 = OpenSSL.crypto.load_certificate(OpenSSL.crypto.FILETYPE_PEM, certificate)
 
         result = {
-        #'subject': dict(x509.get_subject().get_components()),
         'serialNumber': x509.get_serial_number(),
         'notBefore': datetime.strptime(x509.get_notBefore(), '%Y%m%d%H%M%SZ'),
         'notAfter': datetime.strptime(x509.get_notAfter(), '%Y%m%d%H%M%SZ'),
