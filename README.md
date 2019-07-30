@@ -9,7 +9,7 @@ python ReadCert.py hosts.txt
 
 hosts.txt should look like this:
 --------------------
-www.google.com
-www.stackoverflow.com
-www.github.com
+www.google.com   
+www.stackoverflow.com    
+www.github.com     
 --------------------
