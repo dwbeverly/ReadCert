@@ -4,7 +4,7 @@ import OpenSSL
 from sys import argv
 from datetime import datetime
 
-#TLS handhskae to read cert, returns it in DER formatting
+#TLS handshake to read cert, returns it in DER formatting
 def get_certificate(host, port=443, timeout=10):
     context = ssl.create_default_context()
     conn = socket.create_connection((host, port))
